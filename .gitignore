@@ -1,3 +1,19 @@
+# Virtual environment for this project
+quickdraw-venv/
+
+# Images used for training
+quickdraw/bin-images/
+quickdraw/images/
+
+# Tensorboard files
+quickdraw/runs/
+
+# VS code files
+.vscode/
+
+# Notebooks
+*.ipynb
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
