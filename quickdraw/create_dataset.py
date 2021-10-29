@@ -9,7 +9,7 @@ def main():
     Notes
     -----
     - See https://pytorch.org/vision/stable/datasets.html#torchvision.datasets.ImageFolder to see
-      how images must be arranged for the DataLoader.
+      how images must be arranged for the Dataset.
     """
     if not os.path.exists('images'):
         os.mkdir('images')

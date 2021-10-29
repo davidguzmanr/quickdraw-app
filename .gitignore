@@ -14,6 +14,9 @@ quickdraw/runs/
 # Notebooks
 *.ipynb
 
+# Gradio app, I like streamlit more because I can control the width of the drawing
+app-gradio.py
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

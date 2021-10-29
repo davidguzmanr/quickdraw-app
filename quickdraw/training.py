@@ -1,46 +1,91 @@
 import torch
-import torch.nn as nn
 from torch.utils.data import DataLoader, random_split
 from torch.utils.tensorboard import SummaryWriter
+from torchinfo import summary
 
-from torchvision.datasets import ImageFolder
-from torchvision import models
-import torchvision.transforms as transforms
-
-from training_utils import train
+from training_utils import create_dataset, create_model, train, eval_epoch
+import argparse
 
 def main():
-    # If there is a GPU then the model will be trained there
-    device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+    # See https://github.com/pytorch/examples/blob/master/mnist/main.py 
+    # for a nice example for the ArgumentParser
 
-    model = models.mobilenet_v2()
-    # Replace the last layer so out_features=345 instead of out_features=1000
-    model.classifier = nn.Sequential(nn.Dropout(p=0.2),
-                                     nn.Linear(in_features=1280, out_features=345))
-    # Move model to GPU, in case there is one
+    # Training settings
+    parser = argparse.ArgumentParser(description='QuickDraw training')
+    parser.add_argument('--batch-size', type=int, default=32, metavar='N',
+                        help='Input batch size for training (default: 32)')
+    parser.add_argument('--epochs', type=int, default=20, metavar='N',
+                        help='Number of epochs to train (default: 20)')
+    parser.add_argument('--lr', type=float, default=1e-3, metavar='LR',
+                        help='learning rate (default: 1e-3)')
+    parser.add_argument('--cuda', action='store_true', dest='cuda',
+                        help='Enables CUDA training.')
+    parser.add_argument('--no-cuda', action='store_false', dest='cuda',
+                        help='Disables CUDA training.')
+    parser.set_defaults(cuda=True)
+    args = parser.parse_args()
+
+    # If there is a GPU and CUDA is enabled the model will be trained in the GPU
+    if torch.cuda.is_available() and args.cuda:
+        device = torch.device('cuda:0')
+    else:
+        device = torch.device('cpu')
+
+    print(f'Training in {device}\n')
+
+    # Create model and move it to the device
+    model = create_model()
     model.to(device)
+    summary(model)
+    
+    # Create the dataset and split it in (train, val, test)
+    dataset = create_dataset()  
+    n = len(dataset)  
+    train_dataset, validation_dataset, test_dataset = random_split(
+        dataset, 
+        lengths=[int(0.8 * n), int(0.1 * n), int(0.1 * n)], 
+        generator=torch.Generator().manual_seed(42)
+    )
 
-    # See https://discuss.pytorch.org/t/computing-the-mean-and-std-of-dataset/34949
-    transform = transforms.Compose([
-        transforms.ToTensor(), 
-        transforms.Normalize((0.9720, 0.9720, 0.9720), 
-                             (0.1559, 0.1559, 0.1559)) # Normalize with the mean and std of the whole dataset
-    ])
+    train_loader = DataLoader(train_dataset, batch_size=args.batch_size, num_workers=4)
+    validation_loader = DataLoader(validation_dataset, batch_size=args.batch_size, num_workers=4)
+    test_loader = DataLoader(test_dataset, batch_size=args.batch_size, num_workers=4)
 
-    dataset = ImageFolder(root='images', transform=transform)
-    train_dataset, validation_dataset = random_split(dataset, lengths=[30000, 4500],
-                                                     generator=torch.Generator().manual_seed(42))
+    writer = SummaryWriter(log_dir='runs/experiment-2')
+    
+    # Train the model, open TensorBoard to see the progress
+    train(
+        model, 
+        train_loader, 
+        validation_loader, 
+        device, 
+        lr=args.lr, 
+        epochs=args.epochs, 
+        writer=writer, 
+        checkpoint_path='models/checkpoint-2.pt'
+    )
 
-    train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True, num_workers=4, 
-                              generator=torch.Generator().manual_seed(42))
-    validation_loader = DataLoader(validation_dataset, batch_size=32, shuffle=True, num_workers=4, 
-                                   generator=torch.Generator().manual_seed(42))
+    # Save the model
+    torch.save(model, 'models/model-2.pt')
 
-    train_writer = SummaryWriter(log_dir='runs/train-3')
-    validation_writer = SummaryWriter(log_dir='runs/validation-3')
+    # Add some metrics to evaluate different models and hyperparameters
+    _, train_acc = eval_epoch(model, train_loader, device)
+    _, val_acc = eval_epoch(model, validation_loader, device)
+    _, test_acc = eval_epoch(model, test_loader, device)
 
-    _, _ = train(model, train_loader, validation_loader, device, lr=1e-3, epochs=20, 
-                 train_writer=train_writer, validation_writer=validation_writer)
+    writer.add_hparams(
+        hparam_dict={
+            'lr': args.lr, 
+            'batch_size': args.batch_size, 
+            'epochs': args.epochs
+            },
+        metric_dict={
+            'train_accuracy': train_acc,
+            'val_accuracy': val_acc,
+            'test_accuracy': test_acc
+            },
+        run_name='hparams'
+    )
 
 if __name__ == '__main__':
     main()
