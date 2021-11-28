@@ -8,6 +8,9 @@ quickdraw/images/
 # Tensorboard files
 quickdraw/runs/
 
+# Some checkpoints
+quickdraw/models/checkpoints
+
 # VS code files
 .vscode/
 

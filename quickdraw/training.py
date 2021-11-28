@@ -3,7 +3,7 @@ from torch.utils.data import DataLoader, random_split
 from torch.utils.tensorboard import SummaryWriter
 from torchinfo import summary
 
-from training_utils import create_dataset, create_model, train, eval_epoch
+from training_utils import load_dataset, create_model, train, eval_epoch
 import argparse
 
 def main():
@@ -14,7 +14,7 @@ def main():
     parser = argparse.ArgumentParser(description='QuickDraw training')
     parser.add_argument('--batch-size', type=int, default=32, metavar='N',
                         help='Input batch size for training (default: 32)')
-    parser.add_argument('--epochs', type=int, default=20, metavar='N',
+    parser.add_argument('--epochs', type=int, default=50, metavar='N',
                         help='Number of epochs to train (default: 20)')
     parser.add_argument('--lr', type=float, default=1e-3, metavar='LR',
                         help='learning rate (default: 1e-3)')
@@ -31,15 +31,15 @@ def main():
     else:
         device = torch.device('cpu')
 
-    print(f'Training in {device}\n')
+    print(f'\nTraining in {device}\n')
 
     # Create model and move it to the device
     model = create_model()
     model.to(device)
     summary(model)
     
-    # Create the dataset and split it in (train, val, test)
-    dataset = create_dataset()  
+    # Create the dataset and split it in (train, val, test), I will use (0.8, 0.1, 0.1)
+    dataset = load_dataset()  
     n = len(dataset)  
     train_dataset, validation_dataset, test_dataset = random_split(
         dataset, 
@@ -78,12 +78,12 @@ def main():
             'lr': args.lr, 
             'batch_size': args.batch_size, 
             'epochs': args.epochs
-            },
+        },
         metric_dict={
             'train_accuracy': train_acc,
             'val_accuracy': val_acc,
             'test_accuracy': test_acc
-            },
+        },
         run_name='hparams'
     )
 
