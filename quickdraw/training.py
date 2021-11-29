@@ -17,7 +17,7 @@ def main():
     parser.add_argument('--epochs', type=int, default=50, metavar='N',
                         help='Number of epochs to train (default: 20)')
     parser.add_argument('--lr', type=float, default=1e-3, metavar='LR',
-                        help='learning rate (default: 1e-3)')
+                        help='Learning rate (default: 1e-3)')
     parser.add_argument('--cuda', action='store_true', dest='cuda',
                         help='Enables CUDA training.')
     parser.add_argument('--no-cuda', action='store_false', dest='cuda',
@@ -47,9 +47,21 @@ def main():
         generator=torch.Generator().manual_seed(42)
     )
 
-    train_loader = DataLoader(train_dataset, batch_size=args.batch_size, num_workers=4)
-    validation_loader = DataLoader(validation_dataset, batch_size=args.batch_size, num_workers=4)
-    test_loader = DataLoader(test_dataset, batch_size=args.batch_size, num_workers=4)
+    train_loader = DataLoader(
+        train_dataset, 
+        batch_size=args.batch_size, 
+        num_workers=4
+    )
+    validation_loader = DataLoader(
+        validation_dataset, 
+        batch_size=args.batch_size, 
+        num_workers=4
+    )
+    test_loader = DataLoader(
+        test_dataset, 
+        batch_size=args.batch_size, 
+        num_workers=4
+    )
 
     writer = SummaryWriter(log_dir='runs/experiment-2')
     
