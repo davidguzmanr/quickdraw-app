@@ -18,8 +18,13 @@ def main():
         names = [name.replace('\n', '') for name in file.readlines()]
 
     for name in tqdm(names):
-        images = QuickDrawDataGroup(name, recognized=True, max_drawings=1000, 
-                                    cache_dir='bin-images', print_messages=False)
+        images = QuickDrawDataGroup(
+            name, 
+            recognized=True, 
+            max_drawings=1000,
+            cache_dir='bin-images', 
+            print_messages=False
+        )
         name = name.replace(' ', '-')
         path = f'images/{name}/'
 

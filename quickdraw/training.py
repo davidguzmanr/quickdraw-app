@@ -38,7 +38,7 @@ def main():
     model.to(device)
     summary(model)
     
-    # Create the dataset and split it in (train, val, test), I will use (0.8, 0.1, 0.1)
+    # Create the dataset and split it in (train, val, test), I will use (0.8, 0.1, 0.1) respectively
     dataset = load_dataset()  
     n = len(dataset)  
     train_dataset, validation_dataset, test_dataset = random_split(

@@ -144,7 +144,7 @@ def train(model, train_loader, validation_loader, device, lr=1e-3, epochs=20, pa
     epochs: int, default=20.
         Number of epochs.
 
-    patience: int, default=5
+    patience: int, default=5.
         Number of epochs with no improvement after which training 
         will be stopped for early stopping.
 
@@ -214,10 +214,9 @@ def load_dataset():
     - See https://discuss.pytorch.org/t/computing-the-mean-and-std-of-dataset/34949 
     """
     transform = transforms.Compose([
-        transforms.Grayscale(),
         transforms.ToTensor(), 
-        transforms.Normalize((0.9720,), 
-                             (0.1559,)) # Normalize with the mean and std of the whole dataset
+        transforms.Normalize((0.9720, 0.9720, 0.9720), 
+                             (0.1559, 0.1559, 0.1559)) # Normalize with the mean and std of the whole dataset
     ])
 
     dataset = ImageFolder(root='images', transform=transform)
